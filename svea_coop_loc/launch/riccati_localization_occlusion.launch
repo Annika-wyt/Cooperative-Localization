@@ -1,0 +1,129 @@
+<launch>
+    <arg name="agent_name"          default="agent8"/>
+    <arg name="svea_name"           default="svea3"/>
+    <arg name="mapframe"            default="map"/>
+    <arg name="baseframe"           default="base_link"/>
+    <arg name="cameraframe"         default="camera"/>
+    <arg name="webcameraframe"      default="webcamera"/>
+    <arg name="simulated"           default="false"/>
+    <arg name="debug"               default="false"/>
+    
+    <arg name="env_yaml"            default="sml_env.yaml" /> 
+    
+    <arg name="camera_yaml"         default="$(find pixy_camera)/parameter/pixy2camera.yaml" /> 
+    
+    <arg name="lli_port"            default="/dev/ttyACM0"/>
+    <arg name="camera_device_id"    default="0"/>
+    
+    <arg name="k"                   default="1"/>
+    <arg name="q"                   default="10"/>
+    <arg name="v1"                  default="0.1"/>
+    <arg name="v2"                  default="1"/>
+    <arg name="x"                   default="0"/>
+    <arg name="y"                   default="0"/>
+    <arg name="z"                   default="0"/>
+    <arg name="qw"                  default="1"/>
+    <arg name="qx"                  default="0"/>
+    <arg name="qy"                  default="0"/>
+    <arg name="qz"                  default="0"/>
+
+    <arg name="map_file"            default="$(find svea_core)/maps/sml.yaml"/>
+
+    <group ns="$(arg agent_name)">    
+        <group if="$(arg simulated)">
+            <node name="simulated_topics" pkg="svea_thesis" type="simulated_inputs.py"  output="screen">
+            <param name="env_yaml"   value="$(find svea_thesis)/occlusion_params/$(arg env_yaml)"/>
+            </node>
+        </group>
+
+        <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+            <param name="port" value="$(arg lli_port)"/>
+            <param name="baud" value="250000"/>
+        </node>
+            
+        <node pkg="svea_sensors" type="actuation_to_twist.py" name="actuation_to_twist" output="screen"/>
+
+        <node name="pure_pursuit" pkg="svea_thesis" type="pure_pursuit.py"  output="screen">
+            <param name="debug"               value="$(arg debug)"/>
+                <param name="svea_name"           value="$(arg svea_name)"/>
+            <rosparam subst_value="true">
+                traj: 
+                    - [0.0, -0.0]
+                    - [-0.55, -0.0]
+            </rosparam>
+        </node>
+        <!-- <group unless="$(arg simulated)"> -->
+            <!-- <include file="$(find svea_thesis)/launch/pixy_camera.launch"> -->
+                <!-- <arg name="camera_yaml"     value="$(arg camera_yaml)"/> -->
+                <!-- <arg name="debug"           value="$(arg debug)"/> -->
+            <!-- </include> -->
+
+
+        <!-- </group> -->
+
+        <node pkg="svea_thesis" type="riccati_estimation_occlusion.py" name="riccati_estimation_occlusion" output="screen">
+            <param name="env_yaml"          value="$(find svea_thesis)/occlusion_params/$(arg env_yaml)"/>
+            <param name="svea_name"         value="$(arg svea_name)"/>
+            <param name="mapframe"          value="$(arg mapframe)"/>
+            <param name="baseframe"         value="$(arg baseframe)"/>
+            <param name="cameraframe"       value="$(arg cameraframe)"/>
+            <param name="debug"             value="$(arg debug)"/>
+            <param name="k"                 value="$(arg k)"/>
+            <param name="q"                 value="$(arg q)"/>
+            <param name="v1"                value="$(arg v1)"/>
+            <param name="v2"                value="$(arg v2)"/>
+            <rosparam subst_value="true">
+            pose: [$(arg x), $(arg y), $(arg z)]
+            orientation: [$(arg qw), $(arg qx), $(arg qy), $(arg qz)]
+            </rosparam>
+        </node>
+
+        <include file="$(find foxglove_bridge)/launch/foxglove_bridge.launch">
+            <arg name="port" value="8765" />
+        </include>
+
+        <node if="$(eval map != '')" pkg="map_server" type="map_server" name="map_server" output="screen" args="$(arg map_file)"/>
+
+        <!-- <node name="test_nats_service" pkg="svea_thesis" type="test_nats_service.py"  output="screen"> -->
+            <!-- <param name="svea_name"         value="$(arg svea_name)"/> -->
+        <!-- </node> -->
+
+        <include file="$(find svea_thesis)/launch/camera.launch">
+            <arg name="camera_device_id"        value="$(arg camera_device_id)"/>
+            <arg name="cameraframe"             value="$(arg webcameraframe)"/>
+        </include>
+
+        <node if="$(eval baseframe != 'base_link')" pkg="tf2_ros" type="static_transform_publisher" name="basemap_broadcaster"        args="1.0 0 0 0 0 0 map base_link" />
+
+        <!-- SVEA1 -->
+        <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="cameralink_broadcaster"     args="0.1650 0.00 0.065 -1.57 0 -1.57 base_link camera" />   -->
+        <!-- SVEA3 -->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="cameralink_broadcaster"     args="0.3218 0.00 0.2033 -1.57 0 -1.57 base_link camera" />  
+        <node pkg="tf2_ros" type="static_transform_publisher" name="webcameralink_broadcaster"     args="0.3218 0.00 0.0 1.57 0 1.57 base_link webcamera" />  
+
+    </group>
+
+    <include file="$(find svea_mocap)/launch/mocap_only.launch">
+        <arg name="mocap_name" default="$(arg svea_name)"/>
+    </include>
+    
+    <node name="nats_connector" pkg="nats_ros_connector" type="nats_connector.py" output="screen">
+        <param name="host" value="10.0.0.153" />
+        <rosparam>
+            publishers:
+                <!-- - agent7/riccatiPoint -->
+                - agent8/riccatiPoint
+            subscribers:
+    <!--             - agent8/riccatiPoint -->
+                - agent7/riccatiPoint
+        <!-- Services follower agent -->
+            <!-- services: -->
+                <!-- - agent8/getPositionSrv -->
+        <!-- Service proxies leader agent -->
+            <!-- service_proxies: -->
+                <!-- - name: agent5/getPositionSrv -->
+                  <!-- type: svea_thesis/GetPosition -->
+        </rosparam>
+    </node>
+
+</launch>

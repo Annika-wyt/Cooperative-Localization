@@ -1,0 +1,9 @@
+staticlandmarks:
+  - id: 1
+    position: [0.92, 0.21, 0.075]
+  - id: 2
+    position: [1.42, -0.47, 0.075]
+  - id: 4
+    position: [0.92, -0.26, 0.075]
+  - id: 5
+    position: [1.42, -0.0, 0.075]

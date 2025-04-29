@@ -1,0 +1,60 @@
+<launch>
+    <arg name="agent_name"          default="agent5"/>
+    <arg name="svea_name"           default="svea1"/>
+    <arg name="debug"               default="false"/>
+    <arg name="lli_port"            default="/dev/ttyACM0"/>
+    <arg name="run_purepursuit"     default="true"/>
+    
+    <group ns="$(arg agent_name)">    
+        <node name="leader_vehicle" pkg="svea_thesis" type="leader_vehicle.py"  output="screen">
+            <param name="debug"               value="$(arg debug)"/>
+            <param name="svea_name"           value="$(arg svea_name)"/>
+        </node>
+    </group>
+
+    <!-- <group if="$(arg run_purepursuit)"> -->
+        <!-- <node name="pure_pursuit" pkg="svea_thesis" type="pure_pursuit.py"  output="screen"> -->
+            <!-- <param name="debug"               value="$(arg debug)"/> -->
+                <!-- <param name="svea_name"           value="$(arg svea_name)"/> -->
+            <!-- <rosparam subst_value="true"> -->
+                <!-- traj:  -->
+                    <!-- driving forawrd along x -->
+                    <!-- - [0.0, 0.0] -->
+                    <!-- - [2.0, 0.0] -->
+                    <!-- driving forawrd along y -->
+                    <!-- - [0.65, 0] -->
+                    <!-- - [0.65, -2.0] -->
+            <!-- </rosparam> -->
+        <!-- </node> -->
+    <!-- </group> -->
+
+    <!-- <node name="rosserial" pkg="rosserial_python" type="serial_node.py"  output="screen"> -->
+        <!-- <param name="baud" value="250000"/> -->
+        <!-- <param name="port" value="$(arg lli_port)"/> -->
+    <!-- </node> -->
+
+    <!-- <node pkg="svea_sensors" type="actuation_to_twist.py" name="actuation_to_twist" output="screen"/> -->
+    
+    <!-- <node name="throttle" pkg="topic_tools" type="throttle"  args="messages /qualisys/svea1/pose 90 /qualisys/svea1/pose/slower" output="screen">  -->
+    <!-- </node> -->
+    <include file="$(find svea_mocap)/launch/mocap_only.launch">
+        <arg name="mocap_name" value="$(arg svea_name)"/>
+    </include>
+
+    <!-- <node name="nats_connector" pkg="nats_ros_connector" type="nats_connector.py" output="screen"> -->
+        <!-- <param name="host" value="10.0.1.169" /> -->
+        <!-- <rosparam> -->
+            <!-- publishers:  -->
+                <!-- - agent5/riccatiPoint -->
+            <!-- subscribers: -->
+                <!-- - agent8/riccatiPoint -->
+            <!-- services: -->
+        <!-- Services leader agent -->
+                <!-- - agent5/getPositionSrv -->
+        <!-- Service proxies follower agent -->
+            <!-- service_proxies: -->
+                <!-- - name: agent8/getPositionSrv -->
+                  <!-- type: svea_thesis/GetPosition -->
+        <!-- </rosparam> -->
+    <!-- </node> -->
+</launch>

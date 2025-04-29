@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="camera_device_id"        default="0"/>
+    <arg name="camera_info_file"        default="logitech_web_camera_640_480.yaml"/>
+    <arg name="image_width"             default="640"/>
+    <arg name="image_height"             default="480"/>
+
+    <node name="camera" pkg="cv_camera" type="cv_camera_node" output="screen">
+        <param name="camera_info_url"   value="file://$(find svea_thesis)/camera_params/$(arg camera_info_file)" />
+        <param name="rate"              value="30.0"/>
+        <param name="device_id"         value="$(arg camera_device_id)"/>
+        <param name="image_width"       value="$(arg image_width)"/>
+        <param name="image_height"      value="$(arg image_height)"/>
+        <param name="frame_id"          value="camera"/>
+    </node>
+
+    <node name="aruco_detect" pkg="svea_thesis" type="aruco_detect.py"  output="screen"> </node>
+    <node name="test_buffer_camera_msg" pkg="svea_thesis" type="test_buffer_camera_msg.py"  output="screen"> </node>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="cameralink_broadcaster"    args="0.3975 0.0 0.1859 -1.57 0 -1.57 base_link camera" />
+
+</launch>

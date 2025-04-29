@@ -1,0 +1,59 @@
+staticlandmarks:
+
+#####################################    
+# on positive x (close to table)
+  # - id: 1
+  #   position: [1.81, -0.68, 0.365]
+  # - id: 2
+  #   position: [1.81, 0.32, 0.365]
+  # - id: 4
+  #   position: [1.31, -0.18, 0.075]
+  # - id: 5
+  #   position: [1.31, 0.82, 0.075]
+#####################################    
+
+#####################################    
+# on negative x (close to wall of boxes)
+  # b
+  - id: 4
+    position: [-1.994, 0.5057, 0.08]
+  # c
+  - id: 1
+    position: [-2.5115, 0.0303, 0.40]
+  # d
+  - id: 2
+    position: [-2.0464, -0.5005, 0.08]
+  # e
+  - id: 5
+    position: [-2.5526, -0.9684, 0.40]
+#####################################    
+
+
+#####################################    
+  # - id: 11
+  #   position: [1.81, -0.52, 0.42]
+  # - id: 14
+  #   position: [1.81, 0.48, 0.42]
+  # - id: 17
+  #   position: [2.31, -0.18, 0.124]
+#####################################    
+
+# diagonal
+  # - id: 1
+  #   position: [-1.58394, -2.9381, 0.3922]
+  # - id: 2
+  #   position: [-2.3807, -1.8581, 0.3702]
+  # - id: 4
+  #   position: [-1.5100, -1.9974, 0.115]
+
+agents:
+  - idx: 7
+    vehicleType: "Follower"
+    sveaId: 1
+  - idx: 8
+    vehicleType: "Follower"
+    sveaId: 3
+env:
+  - communicationMethod: "NATS"
+  # "qualisys"
+  # "NATS" -  "NATS with subscriber and publisher"
